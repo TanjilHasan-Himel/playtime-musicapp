@@ -1,5 +1,7 @@
 package com.eplaytime.app.ui.screens
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -13,6 +15,10 @@ import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import com.eplaytime.app.ui.components.SwipeableVisualizer
+import com.eplaytime.app.util.VisualizerHelper
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -59,6 +65,43 @@ fun PlayerScreen(
     val loopEnd by viewModel.loopEnd.collectAsState()
     val loopEnabled by viewModel.loopEnabled.collectAsState()
     val allFavorites by viewModel.allFavorites.collectAsState(initial = emptyList())
+    val audioSessionId by viewModel.audioSessionId.collectAsState()
+    val visualizerStyle by viewModel.visualizerStyle.collectAsState()
+
+    // Visualizer State
+    val context = LocalContext.current
+    val visualizerHelper = remember { VisualizerHelper() }
+    
+    // Permission Handling
+    var hasRecordAudioPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) 
+            == android.content.pm.PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        hasRecordAudioPermission = isGranted
+    }
+
+    // Auto-request permission if missing (when on this screen)
+    LaunchedEffect(Unit) {
+        if (!hasRecordAudioPermission) {
+            permissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+        }
+    }
+
+    // Lifecycle: Start/Stop Visualizer
+    DisposableEffect(audioSessionId, hasRecordAudioPermission) {
+        if (hasRecordAudioPermission && audioSessionId != 0) {
+            visualizerHelper.start(audioSessionId)
+        }
+        onDispose {
+            visualizerHelper.stop()
+        }
+    }
 
     // Check if current song is favorited
     val isFavorite = currentSong?.let { song ->
@@ -217,13 +260,34 @@ fun PlayerScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Waveform Visualizer
-            WaveformVisualizer(
-                isPlaying = isPlaying,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-            )
+            // Waveform Visualizer (Real & Swipeable)
+            if (hasRecordAudioPermission) {
+                // VISUALIZER (Swipeable Linear - Pro Engine)
+                SwipeableVisualizer(
+                    visualizerHelper = visualizerHelper,
+                    currentStyle = visualizerStyle,
+                    onSwipeNext = { viewModel.nextVisualizerStyle() },
+                    primaryColor = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(80.dp)
+                )
+            } else {
+                // Fallback text or empty space
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(80.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Visualizer requires Audio Permission",
+                        fontFamily = OutfitFontFamily,
+                         fontSize = 12.sp,
+                        color = TextTertiary
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -426,45 +490,7 @@ fun PlayerScreen(
     }
 }
 
-@Composable
-private fun WaveformVisualizer(
-    isPlaying: Boolean,
-    modifier: Modifier = Modifier
-) {
-    val barCount = 32
-    val transition = rememberInfiniteTransition(label = "wave")
-    val phase by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = (2f * Math.PI).toFloat(),
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "phase"
-    )
 
-    Canvas(modifier = modifier) {
-        val barWidth = size.width / (barCount * 1.8f)
-        val gap = barWidth * 0.8f
-        val maxHeight = size.height
-
-        for (i in 0 until barCount) {
-            val x = i * (barWidth + gap) + gap / 2
-            val wave = if (isPlaying) {
-                abs(sin(phase + i * 0.3f))
-            } else {
-                0.15f
-            }
-            val barHeight = maxHeight * (0.15f + 0.85f * wave)
-            drawRoundRect(
-                color = SoftGold.copy(alpha = 0.8f),
-                topLeft = Offset(x, maxHeight - barHeight),
-                size = Size(barWidth, barHeight),
-                cornerRadius = CornerRadius(barWidth / 2, barWidth / 2)
-            )
-        }
-    }
-}
 
 private fun formatDurationFull(millis: Long): String {
     val totalSeconds = (millis / 1000).coerceAtLeast(0)

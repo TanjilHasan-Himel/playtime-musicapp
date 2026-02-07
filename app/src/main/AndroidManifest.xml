@@ -13,6 +13,7 @@
     <!-- Foreground Service Permissions -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <!-- Wake Lock (Keep CPU alive during playback) -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />

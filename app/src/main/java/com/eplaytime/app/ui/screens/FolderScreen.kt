@@ -131,7 +131,7 @@ fun FolderScreen(
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        items(folders) { folderItem ->
+                        items(items = folders, key = { it.path }, contentType = { "folder" }) { folderItem ->
                             FolderItem(
                                 folder = folderItem,
                                 onClick = {

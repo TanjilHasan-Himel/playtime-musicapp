@@ -66,9 +66,24 @@ class MusicService : MediaSessionService() {
         initializePlayer()
         initializeMediaSession()
         
-        // STANDARD NOTIFICATION PROVIDER
-        // Uses default layout and session activity
-        setMediaNotificationProvider(androidx.media3.session.DefaultMediaNotificationProvider(this))
+        // STANDARD NOTIFICATION PROVIDER (Configured for Lock Screen)
+        val notificationProvider = androidx.media3.session.DefaultMediaNotificationProvider(this).apply {
+            setSmallIcon(R.drawable.appicon)
+        }
+        setMediaNotificationProvider(notificationProvider)
+    }
+
+    // Helper for Alarm Notification (Legacy style for immediate start)
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                NOTIFICATION_CHANNEL_ID,
+                "Music Playback",
+                NotificationManager.IMPORTANCE_LOW
+            )
+            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            manager.createNotificationChannel(channel)
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -184,6 +199,7 @@ class MusicService : MediaSessionService() {
 
         mediaSession = MediaSession.Builder(this, player)
             .setSessionActivity(sessionActivityPendingIntent)
+            .setCallback(CustomSessionCallback())
             .build()
     }
 
@@ -196,6 +212,40 @@ class MusicService : MediaSessionService() {
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
         return mediaSession
+    }
+
+    // Handle Custom Commands from ViewModel (MediaController)
+    private val customCommandSessionId = androidx.media3.session.SessionCommand("ACTION_GET_AUDIO_SESSION_ID", android.os.Bundle.EMPTY)
+
+    inner class CustomSessionCallback : MediaSession.Callback {
+        override fun onConnect(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo
+        ): MediaSession.ConnectionResult {
+            val validCommands = MediaSession.ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS.buildUpon()
+                .add(customCommandSessionId)
+                .build()
+            return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
+                .setAvailableSessionCommands(validCommands)
+                .build()
+        }
+
+        override fun onCustomCommand(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo,
+            customCommand: androidx.media3.session.SessionCommand,
+            args: android.os.Bundle
+        ): com.google.common.util.concurrent.ListenableFuture<androidx.media3.session.SessionResult> {
+            if (customCommand.customAction == "ACTION_GET_AUDIO_SESSION_ID") {
+                val resultBundle = android.os.Bundle().apply {
+                    putInt("AUDIO_SESSION_ID", player.audioSessionId)
+                }
+                return com.google.common.util.concurrent.Futures.immediateFuture(
+                    androidx.media3.session.SessionResult(androidx.media3.session.SessionResult.RESULT_SUCCESS, resultBundle)
+                )
+            }
+            return super.onCustomCommand(session, controller, customCommand, args)
+        }
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {

@@ -27,6 +27,8 @@ import com.eplaytime.app.R
 import com.eplaytime.app.data.model.Song
 import com.eplaytime.app.ui.theme.*
 import java.util.Locale
+import coil.request.ImageRequest
+import coil.request.CachePolicy
 
 @Composable
 fun SongList(
@@ -44,7 +46,7 @@ fun SongList(
             contentPadding = contentPadding,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(items = songs, key = { it.id }) { song ->
+            items(items = songs, key = { it.id }, contentType = { "song" }) { song ->
                 SongListItem(
                     song = song,
                     isCurrentlyPlaying = song.id == currentSongId,
@@ -106,6 +108,8 @@ fun VerticalScrollbar(
     }
 }
 
+// ... (existing content)
+
 @Composable
 fun SongListItem(
     song: Song,
@@ -131,7 +135,13 @@ fun SongListItem(
     ) {
         // Round Album Art
         AsyncImage(
-            model = song.albumArtUri ?: R.drawable.logo,
+            model = ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                .data(song.albumArtUri ?: R.drawable.logo)
+                .size(128, 128) // CRITICAL: Downsample
+                .crossfade(true)
+                .diskCachePolicy(CachePolicy.ENABLED)
+                .memoryCachePolicy(CachePolicy.ENABLED)
+                .build(),
             contentDescription = "Album Art",
             modifier = Modifier
                 .size(56.dp)

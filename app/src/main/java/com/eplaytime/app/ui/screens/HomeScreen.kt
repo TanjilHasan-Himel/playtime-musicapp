@@ -47,6 +47,7 @@ import com.eplaytime.app.data.repository.Artist
 import com.eplaytime.app.data.repository.MusicFolder
 import com.eplaytime.app.ui.components.MiniPlayer
 import com.eplaytime.app.ui.components.SongList
+import com.eplaytime.app.ui.components.WelcomeDialog
 import com.eplaytime.app.ui.theme.*
 import com.eplaytime.app.ui.viewmodel.MusicViewModel
 import java.util.Calendar
@@ -169,8 +170,17 @@ fun HomeScreen(
     val isShortAudioHidden by viewModel.isShortAudioHidden.collectAsState()
     val isCallRecordingHidden by viewModel.isCallRecordingHidden.collectAsState()
     val hasNewSongs by viewModel.hasNewSongs.collectAsState()
+    val userName by viewModel.userName.collectAsState()
 
     var showSettingsDialog by remember { mutableStateOf(false) }
+    var showWelcomeDialog by remember { mutableStateOf(false) }
+    
+    // Show Welcome Dialog if name is missing (and not already shown)
+    LaunchedEffect(userName) {
+         if (userName == null) {
+             showWelcomeDialog = true
+         }
+    }
 
     var searchQuery by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(""))
@@ -234,7 +244,8 @@ fun HomeScreen(
                 onSettingsClick = { showSettingsDialog = true },
                 onRefreshClick = { viewModel.rescanDevice() },
                 isLoading = isLoading,
-                hasNewSongs = hasNewSongs
+                hasNewSongs = hasNewSongs,
+                userName = userName
             )
 
             // ... (Search Bar code) ...
@@ -250,6 +261,17 @@ fun HomeScreen(
                     onToggleCallFilter = { viewModel.toggleCallRecordingFilter(it) },
                     onTermsClick = onNavigateToAbout, // Navigate to About (where Terms are located)
                     onAboutClick = onNavigateToAbout
+                )
+            }
+            
+            // Welcome Dialog (Personal Touch)
+            if (showWelcomeDialog && userName == null) {
+                WelcomeDialog(
+                    onNameEntered = { name ->
+                        viewModel.setUserName(name)
+                        showWelcomeDialog = false
+                    },
+                    onDismiss = { /* Optional: Allow skip? For now, forced */ }
                 )
             }
 
@@ -422,16 +444,18 @@ private fun GlassHeader(
     onSettingsClick: () -> Unit,
     onRefreshClick: () -> Unit,
     isLoading: Boolean,
-    hasNewSongs: Boolean // New param
+    hasNewSongs: Boolean, // New param
+    userName: String?
 ) {
     // ... (greeting logic) ...
-    val greeting = remember {
-        when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
+    val greeting = remember(userName) {
+        val timeGreeting = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
             in 5..11 -> "Good Morning"
             in 12..17 -> "Good Afternoon"
             in 18..21 -> "Good Evening"
             else -> "Good Night"
         }
+        if (userName != null) "$timeGreeting, $userName" else timeGreeting
     }
 
     val haptic = LocalHapticFeedback.current
@@ -564,7 +588,7 @@ private fun FolderList(
         ),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(items = folders, key = { it.path }) { folder ->
+        items(items = folders, key = { it.path }, contentType = { "folder" }) { folder ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -616,7 +640,7 @@ private fun AlbumList(
         ),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(items = albums, key = { it.id }) { album ->
+        items(items = albums, key = { it.id }, contentType = { "album" }) { album ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -673,7 +697,7 @@ private fun ArtistList(
         ),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(items = artists, key = { it.id }) { artist ->
+        items(items = artists, key = { it.id }, contentType = { "artist" }) { artist ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

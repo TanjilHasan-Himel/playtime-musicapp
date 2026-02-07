@@ -114,6 +114,30 @@ class MusicViewModel @Inject constructor(
     private val _loopEnabled = MutableStateFlow(false)
     val loopEnabled: StateFlow<Boolean> = _loopEnabled.asStateFlow()
 
+    // Audio Session ID for Visualizer
+    private val _audioSessionId = MutableStateFlow(0)
+    val audioSessionId: StateFlow<Int> = _audioSessionId.asStateFlow()
+
+    // Visualizer Style Carousel
+    enum class VisualizerStyle { LIQUID_FILL, NEON_LINE, CLASSIC_BARS }
+    private val _visualizerStyle = MutableStateFlow(VisualizerStyle.LIQUID_FILL)
+    val visualizerStyle: StateFlow<VisualizerStyle> = _visualizerStyle.asStateFlow()
+
+    fun nextVisualizerStyle() {
+        val nextOrdinal = (_visualizerStyle.value.ordinal + 1) % VisualizerStyle.values().size
+        _visualizerStyle.value = VisualizerStyle.values()[nextOrdinal]
+    }
+
+    // User Name
+    val userName: StateFlow<String?> = dataStore.userName
+        .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), null)
+
+    fun setUserName(name: String) {
+        viewModelScope.launch {
+            dataStore.setUserName(name)
+        }
+    }
+
     // Progress update job
     private var progressUpdateJob: Job? = null
 
@@ -232,8 +256,10 @@ class MusicViewModel @Inject constructor(
             {
                 mediaController = controllerFuture?.get()
                 isControllerReady = true
+                isControllerReady = true
                 setupPlayerListener()
                 preparePlaylistIfReady()
+                requestAudioSessionId()
                 pendingPlayUri?.let { uri ->
                     playSongInternal(uri)
                 }
@@ -793,6 +819,31 @@ class MusicViewModel @Inject constructor(
             started = kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
             initialValue = false
         )
+
+    /**
+     * Request Audio Session ID from Service
+     */
+    private fun requestAudioSessionId() {
+        val controller = mediaController ?: return
+        val command = androidx.media3.session.SessionCommand("ACTION_GET_AUDIO_SESSION_ID", android.os.Bundle.EMPTY)
+        
+        val future = controller.sendCustomCommand(command, android.os.Bundle.EMPTY)
+        future.addListener(
+            {
+                try {
+                    val result = future.get()
+                    if (result.resultCode == androidx.media3.session.SessionResult.RESULT_SUCCESS) {
+                        val sessionId = result.extras.getInt("AUDIO_SESSION_ID")
+                        _audioSessionId.value = sessionId
+                        android.util.Log.d("MusicViewModel", "Received Audio Session ID: $sessionId")
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            },
+            MoreExecutors.directExecutor()
+        )
+    }
 
     /**
      * Toggle "Smart Filter" (Hide audio < 30s)

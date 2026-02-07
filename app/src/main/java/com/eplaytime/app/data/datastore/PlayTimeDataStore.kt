@@ -44,6 +44,7 @@ class PlayTimeDataStore @Inject constructor(
         val ACCENT_COLOR = stringPreferencesKey("accent_color")
         val FILTER_SHORT_AUDIO = booleanPreferencesKey("filter_short_audio") // Hide clips < 30s
         val FILTER_CALL_RECORDINGS = booleanPreferencesKey("filter_call_recordings") // Hide call/voice recordings
+        val USER_NAME = stringPreferencesKey("user_name")
     }
 
     /**
@@ -154,6 +155,22 @@ class PlayTimeDataStore @Inject constructor(
     suspend fun setFilterCallRecordings(enabled: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[Keys.FILTER_CALL_RECORDINGS] = enabled
+        }
+    }
+
+    /**
+     * Get user name
+     */
+    val userName: Flow<String?> = context.dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { prefs -> prefs[Keys.USER_NAME] }
+
+    /**
+     * Save user name
+     */
+    suspend fun setUserName(name: String) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.USER_NAME] = name
         }
     }
 }
