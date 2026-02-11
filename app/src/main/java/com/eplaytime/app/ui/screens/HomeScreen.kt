@@ -511,7 +511,7 @@ private fun GlassHeader(
                     color = TextSecondary
                 )
                 Text(
-                    text = "PlayTime",
+                    text = "Audia Player",
                     fontFamily = OutfitFontFamily,
                     fontWeight = FontWeight.Bold,
                     fontSize = 28.sp,

@@ -68,7 +68,7 @@ class MusicService : MediaSessionService() {
         
         // STANDARD NOTIFICATION PROVIDER (Configured for Lock Screen)
         val notificationProvider = androidx.media3.session.DefaultMediaNotificationProvider(this).apply {
-            setSmallIcon(R.drawable.appicon)
+            setSmallIcon(R.drawable.updateappicon)
         }
         setMediaNotificationProvider(notificationProvider)
     }
@@ -115,7 +115,7 @@ class MusicService : MediaSessionService() {
 
             // 1.6 IMMEDIATELY start Foreground Service to prevent kill
             Log.d(TAG, "🚀 STARTING FOREGROUND IMMEDIATELY")
-            val notification = buildNotification(isPlaying = false, title = "Starting Alarm...", artist = "PlayTime")
+            val notification = buildNotification(isPlaying = false, title = "Starting Alarm...", artist = "Audia Player")
             startForeground(NOTIFICATION_ID, notification)
 
             // 2. Play IMMEDIATELY
@@ -126,7 +126,7 @@ class MusicService : MediaSessionService() {
                         .setMediaMetadata(
                             androidx.media3.common.MediaMetadata.Builder()
                             .setTitle("Alarm")
-                            .setArtist("PlayTime")
+                            .setArtist("Audia Player")
                             .build()
                         )
                         .build()
@@ -156,8 +156,8 @@ class MusicService : MediaSessionService() {
         val playIntent = Intent(this, MusicService::class.java).apply { action = "PLAY_ACTION" }
         
         val builder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.appicon) // Using appicon as fallback or ic_music_note if available
-            .setContentTitle(title ?: "PlayTime")
+            .setSmallIcon(R.drawable.updateappicon) // Using appicon as fallback or ic_music_note if available
+            .setContentTitle(title ?: "Audia Player")
             .setContentText(artist ?: "Playing")
             .setOngoing(isPlaying)
             .setPriority(NotificationCompat.PRIORITY_HIGH)

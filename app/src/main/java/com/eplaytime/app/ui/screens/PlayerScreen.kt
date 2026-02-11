@@ -18,6 +18,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import com.eplaytime.app.ui.components.SwipeableVisualizer
+import com.eplaytime.app.ui.components.PlayerControls
+import com.eplaytime.app.ui.components.FavoriteButton
 import com.eplaytime.app.util.VisualizerHelper
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -420,70 +422,28 @@ fun PlayerScreen(
                 val isFavorite = currentSong?.let { song ->
                     allFavorites.any { it.uri == song.uri }
                 } ?: false
-                IconButton(onClick = { currentSong?.let { viewModel.toggleFavorite(it) } }) {
-                    Icon(
-                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = "Favorite",
-                        tint = if (isFavorite) SoftGold else TextTertiary
-                    )
-                }
+                
+                FavoriteButton(
+                    isFavorite = isFavorite,
+                    onToggle = { currentSong?.let { viewModel.toggleFavorite(it) } }
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Main Playback Controls
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Previous
-                IconButton(
-                    onClick = { viewModel.playPrevious() },
-                    modifier = Modifier.size(56.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.SkipPrevious,
-                        contentDescription = "Previous",
-                        tint = Color.White,
-                        modifier = Modifier.size(36.dp)
-                    )
+            com.eplaytime.app.ui.components.PlayerControls(
+                isPlaying = isPlaying,
+                onPlayPause = { viewModel.togglePlayPause() },
+                onPrevious = { viewModel.playPrevious() },
+                onNext = { viewModel.playNext() },
+                onSeekBackward = { 
+                    viewModel.seekTo((progress - 5000).coerceAtLeast(0))
+                },
+                onSeekForward = { 
+                    viewModel.seekTo((progress + 5000).coerceAtMost(duration))
                 }
-
-                // Play/Pause (Large, Round, Soft edges)
-                Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(CircleShape)
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(SoftGold, SoftGoldDark)
-                            )
-                        )
-                        .clickable { viewModel.togglePlayPause() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = "Play/Pause",
-                        tint = Color.Black,
-                        modifier = Modifier.size(40.dp)
-                    )
-                }
-
-                // Next
-                IconButton(
-                    onClick = { viewModel.playNext() },
-                    modifier = Modifier.size(56.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.SkipNext,
-                        contentDescription = "Next",
-                        tint = Color.White,
-                        modifier = Modifier.size(36.dp)
-                    )
-                }
-            }
+            )
 
             Spacer(modifier = Modifier.height(32.dp))
         }

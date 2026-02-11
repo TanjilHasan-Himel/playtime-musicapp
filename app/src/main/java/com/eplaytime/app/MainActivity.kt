@@ -54,10 +54,33 @@ class MainActivity : ComponentActivity() {
             // Initialize ONCE inside setContent
             val sharedViewModel: MusicViewModel = hiltViewModel()
             
+            // Track Usage on Start
+            LaunchedEffect(Unit) {
+                 sharedViewModel.updateLastOpenedTime()
+            }
+            
             PlayTimeTheme {
                 MainScreen(sharedViewModel = sharedViewModel)
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        scheduleEngagementWorker()
+    }
+
+    private fun scheduleEngagementWorker() {
+        // Schedule worker to run periodically
+        val workRequest = androidx.work.PeriodicWorkRequestBuilder<com.eplaytime.app.worker.EngagementWorker>(
+            12, java.util.concurrent.TimeUnit.HOURS
+        ).build()
+
+        androidx.work.WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "engagement_worker",
+            androidx.work.ExistingPeriodicWorkPolicy.UPDATE, // Update policy to ensure latest worker version
+            workRequest
+        )
     }
 }
 

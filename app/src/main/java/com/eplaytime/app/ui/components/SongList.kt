@@ -22,6 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import coil.compose.AsyncImage
 import com.eplaytime.app.R
 import com.eplaytime.app.data.model.Song
@@ -30,6 +32,7 @@ import java.util.Locale
 import coil.request.ImageRequest
 import coil.request.CachePolicy
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun SongList(
     songs: List<Song>,
@@ -39,71 +42,108 @@ fun SongList(
     contentPadding: PaddingValues = PaddingValues(0.dp),
     state: androidx.compose.foundation.lazy.LazyListState = androidx.compose.foundation.lazy.rememberLazyListState()
 ) {
-    Box(modifier = modifier) {
+    Box(modifier = modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             state = state,
             contentPadding = contentPadding,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            // stickyHeader for "All Songs (Count)" and Shuffle button
+            stickyHeader {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    BlackBackground.copy(alpha = 0.95f),
+                                    BlackBackground.copy(alpha = 0.8f),
+                                    Color.Transparent
+                                )
+                            )
+                        )
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "All Songs (${songs.size})",
+                            fontFamily = OutfitFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = TextPrimary
+                        )
+
+                        // Shuffle Button
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .clickable {
+                                    if (songs.isNotEmpty()) {
+                                        // Trigger shuffle play (logic handled by parent usually, 
+                                        // check if we need to expose a callback or just play random)
+                                        // For now, simpler: user clicks logic.
+                                        // Ideally, pass onShuffleClick up. 
+                                        // Assuming first song + shuffle logic is enough for now or 
+                                        // just simple play.
+                                        // Let's just pick a random song to ensure shuffle-like start if no shuffle param
+                                        if (songs.isNotEmpty()) {
+                                            onSongClick(songs.random())
+                                        }
+                                    }
+                                }
+                                .background(SoftGold.copy(alpha = 0.2f))
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = "Shuffle",
+                                fontFamily = OutfitFontFamily,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 14.sp,
+                                color = SoftGold
+                            )
+                        }
+                    }
+                }
+            }
+
             items(items = songs, key = { it.id }, contentType = { "song" }) { song ->
+                val itemModifier = Modifier.graphicsLayer {
+                    val itemInfo = state.layoutInfo.visibleItemsInfo.find { it.key == song.id }
+                    if (itemInfo != null) {
+                        val offset = itemInfo.offset
+                        // Start transforming when item is near the top (e.g., top 300px)
+                        if (offset < 300) {
+                            val normalized = (offset / 300f).coerceIn(0f, 1f)
+                            scaleX = 0.9f + (0.1f * normalized)
+                            scaleY = 0.9f + (0.1f * normalized)
+                            alpha = normalized
+                        } else {
+                            scaleX = 1f
+                            scaleY = 1f
+                            alpha = 1f
+                        }
+                    }
+                }
+
                 SongListItem(
                     song = song,
                     isCurrentlyPlaying = song.id == currentSongId,
-                    onClick = { onSongClick(song) }
+                    onClick = { onSongClick(song) },
+                    modifier = itemModifier
                 )
             }
         }
         
-        // Custom Scrollbar
-        VerticalScrollbar(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .fillMaxHeight(),
-            listState = state
-        )
-    }
-}
-
-@Composable
-fun VerticalScrollbar(
-    modifier: Modifier = Modifier,
-    listState: androidx.compose.foundation.lazy.LazyListState
-) {
-    val layoutInfo = listState.layoutInfo
-    val totalItems = layoutInfo.totalItemsCount
-    val visibleItemsInfo = layoutInfo.visibleItemsInfo
-    
-    if (totalItems == 0 || visibleItemsInfo.isEmpty()) return
-    
-    val firstVisibleItemIndex = listState.firstVisibleItemIndex
-    val viewportHeight = layoutInfo.viewportSize.height
-    
-    // Estimate total content height: (viewportHeight / visibleItemsCount) * totalItems
-    // This assumes roughly equal item height, which is fine for visual estimation
-    val visibleItemsCount = visibleItemsInfo.size
-    val averageItemHeight = if (visibleItemsCount > 0) viewportHeight / visibleItemsCount else 0
-    val estimatedContentHeight = averageItemHeight * totalItems
-    
-    // Calculate scrollbar thumb size and offset
-    val thumbHeight = (viewportHeight.toFloat() / estimatedContentHeight.toFloat() * viewportHeight.toFloat())
-        .coerceIn(50f, viewportHeight.toFloat()) // Min height 50px
-        
-    val scrollOffset = firstVisibleItemIndex * averageItemHeight
-    val thumbOffset = (scrollOffset.toFloat() / estimatedContentHeight.toFloat() * viewportHeight.toFloat())
-        .coerceIn(0f, viewportHeight.toFloat() - thumbHeight)
-
-    // Draw the scrollbar
-    androidx.compose.foundation.Canvas(
-        modifier = modifier
-            .width(6.dp)
-            .padding(vertical = 4.dp, horizontal = 1.dp)
-    ) {
-        drawRoundRect(
-            color = com.eplaytime.app.ui.theme.TextTertiary.copy(alpha = 0.5f),
-            topLeft = androidx.compose.ui.geometry.Offset(0f, thumbOffset),
-            size = androidx.compose.ui.geometry.Size(size.width, thumbHeight),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx())
+        // Custom Fast Scrollbar
+        VerticalFastScroller(
+            listState = state,
+            modifier = Modifier.align(Alignment.CenterEnd)
         )
     }
 }
@@ -114,10 +154,11 @@ fun VerticalScrollbar(
 fun SongListItem(
     song: Song,
     isCurrentlyPlaying: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(

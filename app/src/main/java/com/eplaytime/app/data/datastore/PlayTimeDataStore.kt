@@ -45,6 +45,8 @@ class PlayTimeDataStore @Inject constructor(
         val FILTER_SHORT_AUDIO = booleanPreferencesKey("filter_short_audio") // Hide clips < 30s
         val FILTER_CALL_RECORDINGS = booleanPreferencesKey("filter_call_recordings") // Hide call/voice recordings
         val USER_NAME = stringPreferencesKey("user_name")
+        val LAST_OPENED_TIME = longPreferencesKey("last_opened_time")
+        val LAST_NOTIFICATION_TIME = longPreferencesKey("last_notification_time")
     }
 
     /**
@@ -171,6 +173,38 @@ class PlayTimeDataStore @Inject constructor(
     suspend fun setUserName(name: String) {
         context.dataStore.edit { prefs ->
             prefs[Keys.USER_NAME] = name
+        }
+    }
+
+    /**
+     * Get last opened time
+     */
+    val lastOpenedTime: Flow<Long> = context.dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { prefs -> prefs[Keys.LAST_OPENED_TIME] ?: 0L }
+
+    /**
+     * Save last opened time
+     */
+    suspend fun setLastOpenedTime(timestamp: Long) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.LAST_OPENED_TIME] = timestamp
+        }
+    }
+
+    /**
+     * Get last notification time
+     */
+    val lastNotificationTime: Flow<Long> = context.dataStore.data
+        .catch { emit(emptyPreferences()) }
+        .map { prefs -> prefs[Keys.LAST_NOTIFICATION_TIME] ?: 0L }
+
+    /**
+     * Save last notification time
+     */
+    suspend fun setLastNotificationTime(timestamp: Long) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.LAST_NOTIFICATION_TIME] = timestamp
         }
     }
 }

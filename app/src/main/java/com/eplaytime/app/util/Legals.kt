@@ -3,17 +3,17 @@ package com.eplaytime.app.util
 object Legals {
     const val EULA = """
 TERMS OF SERVICE AND END USER LICENSE AGREEMENT (EULA)
-App Name: PlayTime
+App Name: Audia Player
 Developer: Tanjil Hasan Himel
-Version: 3.0
+Version: 5.1.0
 Effective Date: February 2, 2026
 
 1. ACKNOWLEDGMENT AND ACCEPTANCE
-This End User License Agreement ("Agreement") is a binding legal contract between you ("User") and Tanjil Hasan Himel ("Developer"). By downloading, installing, or using the PlayTime mobile application ("the App"), you acknowledge that you have read, understood, and agree to be bound by these terms. If you do not agree to these terms, you are strictly prohibited from using the App and must uninstall it immediately.
+This End User License Agreement ("Agreement") is a binding legal contract between you ("User") and Tanjil Hasan Himel ("Developer"). By downloading, installing, or using the Audia Player mobile application ("the App"), you acknowledge that you have read, understood, and agree to be bound by these terms. If you do not agree to these terms, you are strictly prohibited from using the App and must uninstall it immediately.
 
 2. UNIQUE SELLING PROPOSITION (USP) & CORE FEATURES
-PlayTime is defined by its commitment to Privacy, Fidelity, and Precision. By using the App, you acknowledge the following core functionalities:
-• Precision Scheduler: Unlike standard players, PlayTime features a proprietary Audio Scheduling Engine. This allows users to program exact start times for local audio playback, functioning as a music alarm or automated background player.
+Audia Player is defined by its commitment to Privacy, Fidelity, and Precision. By using the App, you acknowledge the following core functionalities:
+• Precision Scheduler: Unlike standard players, Audia Player features a proprietary Audio Scheduling Engine. This allows users to program exact start times for local audio playback, functioning as a music alarm or automated background player.
 • Data Sovereignty (Privacy First): The App operates entirely offline. We do not collect, store, transmit, or sell your personal data, listening habits, or device location. Your business is your own.
 • Non-Destructive Operation: The App is designed with a "Read-Only" philosophy regarding your media files. The Scheduler and Playlist features organize your content but will never modify, corrupt, or delete your original audio files stored on the device.
 • Local Storage: All databases (including Favorites, Playlists, and Schedules) are stored locally within the App’s private sandbox on your device. You retain full ownership and control of your data.
@@ -62,10 +62,10 @@ For technical support, bug reports, or legal inquiries, please contact the Devel
 
     const val PRIVACY_POLICY = """
 PRIVACY POLICY
-App Name: PlayTime | Developer: Tanjil Hasan Himel | Version: 3.0 Effective Date: February 2, 2026
+App Name: Audia Player | Developer: Tanjil Hasan Himel | Version: 5.1.0 Effective Date: February 2, 2026
 
 1. OUR PRIVACY COMMITMENT
-PlayTime is designed with a "Data Sovereignty" philosophy. Unlike many modern applications, we do not monetize your data, track your location, or profile your listening habits.
+Audia Player is designed with a "Data Sovereignty" philosophy. Unlike many modern applications, we do not monetize your data, track your location, or profile your listening habits.
 We operate under a Zero-Knowledge Architecture: What you play, when you play it, and where you play it remains strictly between you and your device.
 
 2. INFORMATION COLLECTION AND USE
@@ -75,7 +75,7 @@ A. Local Audio Data The App scans your device’s internal storage to identify a
 B. Usage Data We do not use third-party analytics services (e.g., Google Analytics, Firebase, Mixpanel). We do not track which buttons you press or how long you use the App.
 
 3. APP PERMISSIONS
-To function as a precision music player and scheduler, PlayTime requires specific permissions. We request these only to perform core features:
+To function as a precision music player and scheduler, Audia Player requires specific permissions. We request these only to perform core features:
 • Storage (Read Media/Audio): Required to access the music files stored on your device so you can create playlists.
 • Foreground Service: Required to keep the "Precision Scheduler" and audio playback active when the screen is off or you are using other apps.
 • Schedule Exact Alarm: Required to ensure your scheduled music starts at the exact second you requested, overriding standard battery-saving delays.
@@ -84,14 +84,14 @@ To function as a precision music player and scheduler, PlayTime requires specifi
 4. DATA STORAGE AND RETENTION
 All data is local.
 • Databases: Your Favorites, Playlists, Play Counts, and Schedule configurations are stored in a private database on your device's internal memory.
-• Deletion: If you uninstall PlayTime, this database is permanently deleted by the Android System. We cannot recover this data for you because we do not have a copy of it.
+• Deletion: If you uninstall Audia Player, this database is permanently deleted by the Android System. We cannot recover this data for you because we do not have a copy of it.
 
 5. ADVERTISING AND TRACKING
 • No Ads: This App does not display third-party advertisements.
 • No Trackers: This App does not contain any advertising IDs (AAID) or tracking pixels.
 
 6. CHILDREN’S PRIVACY
-Since PlayTime does not collect personal data, it is safe for use by children. We do not knowingly collect or solicit any information from anyone under the age of 13.
+Since Audia Player does not collect personal data, it is safe for use by children. We do not knowingly collect or solicit any information from anyone under the age of 13.
 
 7. INTERNATIONAL DATA TRANSFERS
 Since the App operates offline and does not transmit data to the cloud, your data remains subject to the laws of your local jurisdiction and is never transferred across international borders by the App.

@@ -138,6 +138,13 @@ class MusicViewModel @Inject constructor(
         }
     }
 
+    // Engagement: Update last opened time
+    fun updateLastOpenedTime() {
+        viewModelScope.launch {
+             dataStore.setLastOpenedTime(System.currentTimeMillis())
+        }
+    }
+
     // Progress update job
     private var progressUpdateJob: Job? = null
 

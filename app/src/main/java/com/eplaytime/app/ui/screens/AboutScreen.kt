@@ -60,7 +60,7 @@ fun AboutScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "About PlayTime",
+                        text = "About Audia Player",
                         fontFamily = OutfitFontFamily,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 22.sp
@@ -95,14 +95,14 @@ fun AboutScreen(
         ) {
             // App Logo
             AsyncImage(
-                model = R.drawable.appicon,
-                contentDescription = "PlayTime Logo",
+                model = R.drawable.updateappicon,
+                contentDescription = "Audia Player Logo",
                 modifier = Modifier.size(120.dp)
             )
 
             // App Name
             Text(
-                text = "PlayTime",
+                text = "Audia Player",
                 fontFamily = OutfitFontFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = 32.sp,
@@ -178,7 +178,7 @@ fun AboutScreen(
 
             // Footer
             Text(
-                text = "© 2026 PlayTime\nAll rights reserved.",
+                text = "© 2026 Audia Player\nAll rights reserved.",
                 fontFamily = OutfitFontFamily,
                 fontWeight = FontWeight.Light,
                 fontSize = 12.sp,
